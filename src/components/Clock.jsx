@@ -1,122 +1,135 @@
 
 import { useState } from "react";
 
+function timeToString(number){
+  return number < 10 ? '0'+number.toString() : number.toString();
+}
+
 function Clock(){
-  const [working,setWorking] = useState(true);
-
-  const buttonStart = <button onClick={start} className="bg-[#D9D9D9] p-2 rounded-sm border-b-4 border-[#F9F6F6]" >Start</button>
-  const buttonContinue = <div><button onClick={start} className="bg-[#D9D9D9] p-2 rounded-sm border-b-4 border-[#F9F6F6] mr-10">Continue</button> <button className="bg-[#D9D9D9] p-2 rounded-sm border-b-4 border-[#F9F6F6]">Skip</button></div>
-  const buttonPause = <div><button onClick={pause} className="bg-[#D9D9D9] p-2 rounded-sm border-b-4 border-[#F9F6F6] mr-10">Pause</button> <button onClick={skip} className="bg-[#D9D9D9] p-2 rounded-sm border-b-4 border-[#F9F6F6]">Skip</button></div>
-
-  let restTimeSeconds = 0;
-  let restTimeMinutes = 1;
-  let workTimeSeconds = 3;
-  let workTimeMinutes = 2;
-
-  const [minutos, setMinutos] = useState(workTimeMinutes.toString())
-  const [segundos, setSegundos] = useState(workTimeSeconds.toString())
-  const [control, setControl] = useState (buttonStart)
-  let varSegundos = workTimeSeconds;
-  let varMinutos = workTimeMinutes;
-  let state = 'stop';
-  
 
 
+    let working = true
+    let running = false
+    
 
-  let setInterface = () => {
-    console.log("teste")
-    if(state == 'stop'){
-      setControl(buttonStart) 
-    }
-    if(state == 'running'){
-      setControl(buttonPause)
-    } 
-    if(state == 'paused'){
-      setControl(buttonContinue)
-    }
+    const workingMin = 1
+    const workingSec = 0
 
-  }
+    const relaxMin = 2
+    const relaxSec = 0
 
-  function clock(){
-  varSegundos = varSegundos - 1
-    if(varSegundos == -1 && varMinutos != 0){
-      varMinutos = varMinutos -1
-    }
-    if (varSegundos == -1){
-      varSegundos = 59
-    }
+    let clockSec = workingSec
+    let clockMin = workingMin
 
-    if(state == 'running'){
-      updateTimer();
-      if(varMinutos == 0 && varSegundos==0){
-        state = 'paused'
-        console.log(working)
-        setInterface()
-        if (working) {
-          varSegundos = restTimeSeconds
-          varMinutos = restTimeMinutes
-        }else{
-          varSegundos = workTimeSeconds;
-          varMinutos = workTimeMinutes;
-        }
-        setWorking(!working)
-        updateTimer();
-        
+    const [stateStyle,setStateStyle] = useState( ' bg-[#C55252]') 
 
-        /*
-          Bloco de código para configuração para o próximo intervalo de tempo
-        */ 
+    function choseStateStyle(){
+      if(working){
+        setStateStyle(' bg-[#C55252]')
+      }else{
+        setStateStyle(' bg-[#5D5FD8]')
       }
-      setTimeout(clock,100)
-    }
-  }
-  
-  function start() {
-    state = 'running';
-    setInterface();
-    clock();
-  }
-
-  function pause(){
-    state = 'paused'
-    setInterface();
-  }
-
-  function skip(){
-    state = 'paused'
-    setInterface();
-  }
-
-  function updateTimer(){
-    let displaySec = "00"
-    let displayMin = "00"
-    if(varMinutos < 10){
-      displayMin = '0' + varMinutos.toString()
-    }else{
-      displayMin = varMinutos.toString(); 
     }
 
-    if(varSegundos < 10){
-      displaySec = '0'+varSegundos.toString();
-    }else{
-      displaySec = varSegundos.toString();
+    const styleNumbers = "bg-[#D9D9D9] shadow-[0_4px_4px_0px_rgba(0,0,0,0.25)] sm:text-9xl text-6xl";
+    const styleComma = 'sm:text-9xl text-6xl';
+    const contentStyle = 'w-3/5 h-auto mt-16 bg-[rgba(217,217,217,.78)] mx-auto rounded-md grid shadow-gray-400 p-10'
+    const btnsStyle = 'rounded bg-[#D9D9D9] px-2 pt-2 border-b-[5px] shadow-[0_4px_4px_0px_rgba(0,0,0,0.25)]'
+    
+    const [displayMin, setDisplayMin] = useState(timeToString(clockMin));
+    const [displaySec, setDisplaySec] = useState(timeToString(clockSec));
+    
+    const startBtn =      <button onClick={start} className={btnsStyle}>start</button>;
+    const continueBtn = <><button onClick={continuefunc} className={ btnsStyle +" sm:mr-5"}>continue</button> <button onClick={skip} className={ btnsStyle +" sm:mr-5"}>Skip</button></>;
+    const pauseBtn =    <><button onClick={pause} className={btnsStyle +" sm:mr-5"} >pause</button>           <button onClick={skip} className={btnsStyle +" sm:ml-5"}>skip</button></>
+    const [buttons,setButtons] = useState(startBtn);
+
+
+    function start(){
+      running = !running
+      clock()
+      setButtons(pauseBtn)
     }
-    console.log(displaySec)
-      setSegundos(displaySec)
-      setMinutos(displayMin)
-  }
+
+    function pause(){
+      running = !running
+      setButtons(continueBtn)
+    }
+
+    function continuefunc(){
+      running = !running
+      clock()
+      setButtons(pauseBtn)
+    }
+
+    function skip(){
+      running = !running
+      setButtons(continueBtn)
+          //CUIDADO ESTOU MUDANDO ESTUDO E RELAX AQUI
+      working = !working
+      choseStateStyle()
+      if(!working){
+        clockSec = relaxSec
+        clockMin = relaxMin
+      }else{
+        clockSec = workingSec
+        clockMin = workingMin
+      }
+      updateSec()
+      updateMin()
+    }
+
+    function debug(msg){
+      console.log("passou aqui" + msg)
+    }
+
+    function updateSec(){
+      setDisplaySec(timeToString(clockSec))
+    }
+
+    function updateMin(){
+      setDisplayMin(timeToString(clockMin))
+    }
+
+    function clock(){
+      if(running){
+        clockSec --;
+        if(clockSec < 0){
+          clockSec = 59
+        }
+        updateSec()
+        if(clockSec == 59 && clockMin > 0){
+          clockMin--;
+          updateMin()
+        }
+        
+        if(clockSec == 0 && clockMin == 0){
+          skip()
+          
+        }
+        setTimeout(clock,100)
+      }
+      
+
+    }
 
     return(
         <>
-                {working ? <p className="text-center">Working ...</p> : <p className="text-center">Resting ...</p>}
-                <div className="font-mono text-9xl m-auto mt-32">
-                    <span className="bg-[#D9D9D9] rounded-lg shadow-lg">{minutos}</span> <span>:</span> <span className="bg-[#D9D9D9] rounded-lg shadow-lg">{segundos}</span>
-                </div>
-            <div className="mx-auto mt-20 mb-24">{control}</div>
+      <div className={contentStyle + stateStyle }>
+        <p>{' '}</p>
+        <div className="m-auto mb-10">
+          <span className={styleNumbers}>{displayMin}</span> 
+          <span className={styleComma}>:</span> 
+          <span className={styleNumbers}>{displaySec}</span>
+        </div>
+        <div className="mx-auto mt-10">
+            {buttons}
+        </div>
+      </div>
         </>
-    )
+    );
 
 }
 
 
-export default Clock
+export default Clock;
